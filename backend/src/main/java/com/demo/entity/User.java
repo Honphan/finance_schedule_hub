@@ -25,11 +25,13 @@ public class User {
     @Column(length = 255, nullable = false)
     private String password;
 
-    @Column(length = 100, nullable = false, unique = true)
+    @Column(length = 100, unique = true)
     private String email;
 
     @Column(length = 20, nullable = false)
-    private Role role;
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.ROLE_USER;
 
     @Column(length = 20)
     private Provider provider;
