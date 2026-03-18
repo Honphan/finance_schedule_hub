@@ -10,7 +10,6 @@ export const api = axios.create({
   },
 });
 
-// Request interceptor for adding the auth token
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
@@ -24,16 +23,16 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling global errors like 401
 api.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Token is invalid/expired
       useAuthStore.getState().logout();
-      window.location.href = '/login'; // Redirect to login
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

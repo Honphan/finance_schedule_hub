@@ -1,14 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TaskStatus } from '../types';
 import type { TaskEvent } from '../types';
+import { toast } from 'sonner';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<TaskEvent[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Form state
+  const [formTitle, setFormTitle] = useState('');
+  const [formDescription, setFormDescription] = useState('');
+  const [formDeadline, setFormDeadline] = useState('');
+  const [formType, setFormType] = useState('Academic');
 
   useEffect(() => {
-    // Dummy tasks data
     setTasks([
       { id: 1, title: 'Database Design', description: 'Design ERD for project', deadline: '2026-03-20', status: TaskStatus.PENDING, type: 'Academic' },
       { id: 2, title: 'Pay Rent', description: 'Transfer rent to landlord', deadline: '2026-03-31', status: TaskStatus.IN_PROGRESS, type: 'Finance' },
@@ -19,7 +31,32 @@ export default function TasksPage() {
 
   const moveTask = (id: number, newStatus: TaskStatus) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
-    // In real app, call api.patch(...) here
+  };
+
+  const resetForm = () => {
+    setFormTitle('');
+    setFormDescription('');
+    setFormDeadline('');
+    setFormType('Academic');
+  };
+
+  const handleSaveTask = () => {
+    if (!formTitle || !formDeadline) {
+      toast.error('Vui lòng điền tiêu đề và deadline.');
+      return;
+    }
+    const newTask: TaskEvent = {
+      id: Date.now(),
+      title: formTitle,
+      description: formDescription,
+      deadline: formDeadline,
+      status: TaskStatus.PENDING,
+      type: formType,
+    };
+    setTasks(prev => [newTask, ...prev]);
+    toast.success(`Task "${formTitle}" added!`);
+    setDialogOpen(false);
+    resetForm();
   };
 
   const columns = [
@@ -35,7 +72,66 @@ export default function TasksPage() {
     <div className="flex flex-col gap-6 w-full h-full">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Tasks & Events</h2>
-        <Button>Add Task</Button>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button>Add Task</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Task</DialogTitle>
+              <DialogDescription>Create a new task or event.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="task-title">Title</Label>
+                <Input
+                  id="task-title"
+                  placeholder="e.g. Database Design"
+                  value={formTitle}
+                  onChange={e => setFormTitle(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="task-desc">Description</Label>
+                <Textarea
+                  id="task-desc"
+                  placeholder="Describe the task..."
+                  value={formDescription}
+                  onChange={e => setFormDescription(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="task-deadline">Deadline</Label>
+                  <Input
+                    id="task-deadline"
+                    type="date"
+                    value={formDeadline}
+                    onChange={e => setFormDeadline(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Type</Label>
+                  <Select value={formType} onValueChange={setFormType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Academic">Academic</SelectItem>
+                      <SelectItem value="Finance">Finance</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancel</Button>
+              <Button onClick={handleSaveTask}>Save Task</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
@@ -69,7 +165,6 @@ export default function TasksPage() {
                     </div>
                   </CardContent>
                   <CardFooter className="p-2 pt-0 flex flex-wrap gap-1 border-t bg-muted/20">
-                    {/* Status action buttons */}
                     {task.status !== TaskStatus.PENDING && (
                       <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={() => moveTask(task.id, TaskStatus.PENDING)}>To Pending</Button>
                     )}

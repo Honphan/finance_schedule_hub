@@ -35,6 +35,7 @@ public class AuthService {
 
     public ResponseEntity<?> login(AuthRequest request) {
         Optional<User> userOpt = userRepo.findByUsername(request.getUsername());
+        System.out.println(userOpt);
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Không tìm thấy tài khoản này!");

@@ -10,6 +10,7 @@ import FinancePage from './pages/FinancePage';
 
 import AcademicPage from './pages/AcademicPage';
 import TasksPage from './pages/TasksPage';
+import { Toaster } from "@/components/ui/sonner"
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         {/* Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Toaster />
     </Router>
   );
 }
