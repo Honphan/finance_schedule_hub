@@ -1,6 +1,5 @@
 package com.demo.entity;
 
-import com.demo.enums.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,11 +16,8 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(length = 100, nullable = false)
-    private String name;
-
     @Column(length = 20, nullable = false)
-    private CategoryType type;
+    private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

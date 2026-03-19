@@ -124,16 +124,17 @@ export default function FinancePage() {
     }
     setFormSaving(true);
     try {
-      await api.post('/transactions', {
+      const res = await api.post('/transactions', {
         amount: parseFloat(formAmount),
         transactionDate: formDate,
         note: formNote,
-        categoryId: 1, // In real app, this maps to a real category ID
+        categoryName: formCategoryName,
+        type: formType
       });
+      console.log(res);
       toast.success('Transaction added successfully!');
       fetchTransactions();
     } catch {
-      // Fallback: add locally
       const newTx: Transaction = {
         id: Date.now(),
         amount: parseFloat(formAmount),
@@ -172,8 +173,9 @@ export default function FinancePage() {
                   <Input
                     id="dialog-amount"
                     type="number"
-                    step="0.01"
-                    placeholder="0.00"
+                    step="1"
+                    placeholder="0"
+                    min={0}
                     value={formAmount}
                     onChange={(e) => setFormAmount(e.target.value)}
                   />
