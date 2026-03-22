@@ -51,14 +51,12 @@ export default function LoginPage() {
       console.log(response.data);
 
       const data = response.data;
-      const token = data.token || 'dummy-token-for-now';
 
       login({
         id: data.id,
         username: data.username,
-        email: data.email,
         role: data.role as any,
-      }, token);
+      }, data.token);
 
       toast.success('Đăng nhập thành công!');
       navigate('/');

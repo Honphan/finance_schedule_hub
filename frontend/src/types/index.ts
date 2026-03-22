@@ -21,17 +21,15 @@ export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];
 export interface User {
   id: number;
   username: string;
-  email: string;
   role: Role;
 }
 
 export interface AuthResponse {
   id: number;
   username: string;
-  email: string;
   role: string;
   message: string;
-  token?: string; // Often APIs return a token here too
+  token: string;
 }
 
 export interface Category {
@@ -41,11 +39,11 @@ export interface Category {
 }
 
 export interface Transaction {
-  id: number;
   amount: number;
   transactionDate: string;
   note: string;
-  category: Category;
+  categoryName: string;
+  type: TransactionType;
 }
 
 export interface Budget {

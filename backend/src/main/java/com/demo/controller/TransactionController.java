@@ -1,13 +1,11 @@
 package com.demo.controller;
 
+import com.demo.config.UserPrincipal;
 import com.demo.dto.request.TransactionRequest;
 import com.demo.service.TransactionService;
-import org.aspectj.lang.annotation.DeclareWarning;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -17,8 +15,15 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
+    @GetMapping
+    public ResponseEntity<?> getAllTransactions(@AuthenticationPrincipal UserPrincipal principal) {
+        return transactionService.getAllTransactions(principal);
+    }
+
     @PostMapping
-    public ResponseEntity<?> saveTransaction(@RequestBody TransactionRequest request) {
-        return transactionService.saveTransaction(request);
+    public ResponseEntity<?> saveTransaction(
+            @RequestBody TransactionRequest request,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return transactionService.saveTransaction(request, principal);
     }
 }

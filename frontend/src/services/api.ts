@@ -29,9 +29,13 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+      // Don't logout if the 401 came from the login endpoint itself
+      const isAuthEndpoint = requestUrl.includes('/auth/');
+      if (!isAuthEndpoint) {
+        useAuthStore.getState().logout();
+        // Let React Router's ProtectedRoute handle the redirect
+        // instead of doing a hard page reload
       }
     }
     return Promise.reject(error);

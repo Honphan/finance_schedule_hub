@@ -41,16 +41,10 @@ export default function FinancePage() {
     setLoading(true);
     try {
       const { data } = await api.get('/transactions');
+      console.log(data);
       setTransactions(data);
     } catch (err) {
       console.error('Failed to fetch transactions', err);
-      setTransactions([
-        { id: 1, amount: 50.0, transactionDate: '2026-03-15', note: 'Groceries', category: { id: 1, name: 'Food', type: TransactionType.EXPENSE } },
-        { id: 2, amount: 1200.0, transactionDate: '2026-03-01', note: 'Salary', category: { id: 2, name: 'Salary', type: TransactionType.INCOME } },
-        { id: 3, amount: 30.0, transactionDate: '2026-03-10', note: 'Coffee', category: { id: 3, name: 'Drinks', type: TransactionType.EXPENSE } },
-        { id: 4, amount: 200.0, transactionDate: '2026-03-05', note: 'Freelance work', category: { id: 4, name: 'Freelance', type: TransactionType.INCOME } },
-        { id: 5, amount: 15.0, transactionDate: '2026-03-12', note: 'Bus ticket', category: { id: 5, name: 'Transport', type: TransactionType.EXPENSE } },
-      ]);
     } finally {
       setLoading(false);
     }
@@ -58,7 +52,7 @@ export default function FinancePage() {
 
   // Unique category names for filter dropdown
   const categoryNames = useMemo(() => {
-    const names = new Set(transactions.map(tx => tx.category.name));
+    const names = new Set(transactions.map(tx => tx.categoryName));
     return Array.from(names).sort();
   }, [transactions]);
 
@@ -66,10 +60,10 @@ export default function FinancePage() {
   const filteredTransactions = useMemo(() => {
     let result = transactions;
     if (filterType !== 'ALL') {
-      result = result.filter(tx => tx.category.type === filterType);
+      result = result.filter(tx => tx.type === filterType);
     }
     if (filterCategory !== 'ALL') {
-      result = result.filter(tx => tx.category.name === filterCategory);
+      result = result.filter(tx => tx.categoryName === filterCategory);
     }
     if (filterDateFrom) {
       result = result.filter(tx => tx.transactionDate >= filterDateFrom);
@@ -81,7 +75,7 @@ export default function FinancePage() {
       const q = searchQuery.toLowerCase();
       result = result.filter(tx =>
         tx.note.toLowerCase().includes(q) ||
-        tx.category.name.toLowerCase().includes(q)
+        tx.categoryName.toLowerCase().includes(q)
       );
     }
     return result;
@@ -136,11 +130,11 @@ export default function FinancePage() {
       fetchTransactions();
     } catch {
       const newTx: Transaction = {
-        id: Date.now(),
         amount: parseFloat(formAmount),
         transactionDate: formDate,
         note: formNote,
-        category: { id: Date.now(), name: formCategoryName, type: formType },
+        categoryName: formCategoryName,
+        type: formType,
       };
       setTransactions(prev => [newTx, ...prev]);
       toast.success('Transaction added (locally)!');
@@ -320,19 +314,19 @@ export default function FinancePage() {
                     </td>
                   </tr>
                 ) : (
-                  paginatedTransactions.map((tx) => (
-                    <tr key={tx.id} className="border-t hover:bg-muted/50 transition-colors">
+                  paginatedTransactions.map((tx, index) => (
+                    <tr key={index} className="border-t hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">{tx.transactionDate}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${tx.category.type === TransactionType.INCOME ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${tx.type === TransactionType.INCOME ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
                           }`}>
-                          {tx.category.name}
+                          {tx.categoryName}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{tx.note}</td>
-                      <td className={`px-4 py-3 text-right font-medium ${tx.category.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      <td className={`px-4 py-3 text-right font-medium ${tx.type === TransactionType.INCOME ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                         }`}>
-                        {tx.category.type === TransactionType.INCOME ? '+' : '-'}${tx.amount.toFixed(2)}
+                        {tx.type === TransactionType.INCOME ? '+' : '-'}${tx.amount.toFixed(2)}
                       </td>
                     </tr>
                   ))
