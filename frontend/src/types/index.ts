@@ -65,7 +65,6 @@ export interface Course {
   name: string;
   credits: number;
   lecturer: string;
-  semester: Semester;
 }
 
 export interface Timetable {

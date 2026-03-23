@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import type { Course, Timetable } from '../types';
+import { api } from '@/services/api';
 
 export default function AcademicPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -33,24 +34,17 @@ export default function AcademicPage() {
 
   const fetchAcademicData = async () => {
     try {
-      setCourses([
-        { id: 1, name: 'Data Structures', credits: 4, lecturer: 'Dr. Jane Smith', semester: { id: 1, name: 'Spring 2026', startDate: '', endDate: '' } },
-        { id: 2, name: 'Calculus III', credits: 3, lecturer: 'Prof. John Doe', semester: { id: 1, name: 'Spring 2026', startDate: '', endDate: '' } },
-        { id: 3, name: 'Artificial Intelligence', credits: 4, lecturer: 'Dr. Alan Turing', semester: { id: 1, name: 'Spring 2026', startDate: '', endDate: '' } },
-      ]);
-      setTimetables([
-        { id: 1, dayOfWeek: 'MONDAY', period: 1, room: 'A1-201', course: { id: 1, name: 'Data Structures', credits: 4, lecturer: '', semester: { id: 1, name: '', startDate: '', endDate: '' } } },
-        { id: 2, dayOfWeek: 'WEDNESDAY', period: 2, room: 'A1-201', course: { id: 1, name: 'Data Structures', credits: 4, lecturer: '', semester: { id: 1, name: '', startDate: '', endDate: '' } } },
-        { id: 3, dayOfWeek: 'TUESDAY', period: 1, room: 'B2-104', course: { id: 2, name: 'Calculus III', credits: 3, lecturer: '', semester: { id: 1, name: '', startDate: '', endDate: '' } } },
-        { id: 4, dayOfWeek: 'THURSDAY', period: 3, room: 'C1-305', course: { id: 3, name: 'Artificial Intelligence', credits: 4, lecturer: '', semester: { id: 1, name: '', startDate: '', endDate: '' } } },
-      ]);
+      const { data } = await api.get('/courses');
+      setCourses(data);
+      const res = await api.get('/timetables');
+      console.log(res);
     } catch (err) {
       console.error(err);
     }
   };
 
   const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-  const periods = [1, 2, 3, 4, 5];
+  const periods = [1, 2, 3, 4];
 
   const getTimetableForSlot = (day: string, period: number) => {
     return timetables.find(t => t.dayOfWeek === day && t.period === period);
@@ -63,22 +57,28 @@ export default function AcademicPage() {
     setCourseLecturer('');
   };
 
-  const handleSaveCourse = () => {
+  const handleSaveCourse = async () => {
     if (!courseName || !courseCredits) {
       toast.error('Vui lòng điền tên và số tín chỉ.');
       return;
     }
-    const newCourse: Course = {
-      id: Date.now(),
-      name: courseName,
-      credits: parseInt(courseCredits),
-      lecturer: courseLecturer,
-      semester: { id: 1, name: 'Spring 2026', startDate: '', endDate: '' },
-    };
-    setCourses(prev => [...prev, newCourse]);
-    toast.success(`Course "${courseName}" added!`);
-    setCourseDialogOpen(false);
-    resetCourseForm();
+
+    try {
+      await api.post('/courses', {
+        name: courseName,
+        credits: parseInt(courseCredits),
+        lecturer: courseLecturer,
+      });
+
+      toast.success(`Course "${courseName}" added!`);
+      setCourseDialogOpen(false);
+      resetCourseForm();
+      fetchAcademicData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to add course.');
+    }
+
   };
 
   // ---- Timetable Dialog Handlers ----

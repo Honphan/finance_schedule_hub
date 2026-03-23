@@ -26,6 +26,10 @@ public class Timetable {
     private String room;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", referencedColumnName = "id", unique = true)
     private Course course;
 }

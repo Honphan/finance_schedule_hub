@@ -63,6 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
                         .requestMatchers("/api/transactions/**").hasRole("USER")
+                        .requestMatchers("/api/courses/**").hasRole("USER")
+                        .requestMatchers("/api/timetables/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

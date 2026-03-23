@@ -126,18 +126,10 @@ export default function FinancePage() {
         type: formType
       });
       console.log(res);
-      toast.success('Transaction added successfully!');
+      toast.success('Giao dịch được thêm thành công!');
       fetchTransactions();
     } catch {
-      const newTx: Transaction = {
-        amount: parseFloat(formAmount),
-        transactionDate: formDate,
-        note: formNote,
-        categoryName: formCategoryName,
-        type: formType,
-      };
-      setTransactions(prev => [newTx, ...prev]);
-      toast.success('Transaction added (locally)!');
+      toast.error('Thêm giao dịch thất bại!');
     } finally {
       setFormSaving(false);
       setDialogOpen(false);

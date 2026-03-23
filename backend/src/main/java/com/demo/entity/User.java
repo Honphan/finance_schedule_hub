@@ -5,6 +5,7 @@ import com.demo.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -38,6 +39,12 @@ public class User {
 
     @Column(name = "provider_id", length = 100)
     private String providerId;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Timetable> timetables;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Course> courses;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

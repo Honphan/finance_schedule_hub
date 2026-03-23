@@ -25,7 +25,10 @@ public class Course {
     @Column(length = 100)
     private String lecturer;
 
+    @OneToOne(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Timetable timetable;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "semester_id", nullable = false)
-    private Semester semester;
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
