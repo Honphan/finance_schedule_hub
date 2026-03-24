@@ -69,7 +69,7 @@ export interface Course {
 
 export interface Timetable {
   id: number;
-  dayOfWeek: string;
+  dayOfWeek: number;
   period: number;
   room: string;
   course: Course;

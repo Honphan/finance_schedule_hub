@@ -3,6 +3,8 @@ package com.demo.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "courses")
 @Getter
@@ -25,8 +27,8 @@ public class Course {
     @Column(length = 100)
     private String lecturer;
 
-    @OneToOne(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Timetable timetable;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Timetable> timetables;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

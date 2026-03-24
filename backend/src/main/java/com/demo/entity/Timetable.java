@@ -17,7 +17,7 @@ public class Timetable {
     private Integer id;
 
     @Column(name = "day_of_week", length = 15, nullable = false)
-    private String dayOfWeek;
+    private Integer dayOfWeek; // 2-8
 
     @Column(nullable = false)
     private Integer period;
@@ -29,7 +29,7 @@ public class Timetable {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", referencedColumnName = "id", unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
     private Course course;
 }

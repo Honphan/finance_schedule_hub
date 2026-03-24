@@ -23,8 +23,8 @@ export default function AcademicPage() {
   // Timetable dialog
   const [ttDialogOpen, setTtDialogOpen] = useState(false);
   const [ttCourseId, setTtCourseId] = useState('');
-  const [ttDay, setTtDay] = useState('');
-  const [ttPeriod, setTtPeriod] = useState('');
+  const [ttDay, setTtDay] = useState<number | null>(null);
+  const [ttPeriod, setTtPeriod] = useState<number | null>(null);
   const [ttRoom, setTtRoom] = useState('');
   const [editingTtId, setEditingTtId] = useState<number | null>(null);
 
@@ -37,16 +37,24 @@ export default function AcademicPage() {
       const { data } = await api.get('/courses');
       setCourses(data);
       const res = await api.get('/timetables');
-      console.log(res);
+      setTimetables(res.data);
+      console.log(res.data);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+  const days = [
+    { label: 'MONDAY', value: 2 },
+    { label: 'TUESDAY', value: 3 },
+    { label: 'WEDNESDAY', value: 4 },
+    { label: 'THURSDAY', value: 5 },
+    { label: 'FRIDAY', value: 6 },
+    { label: 'SATURDAY', value: 7 },
+  ];
   const periods = [1, 2, 3, 4];
 
-  const getTimetableForSlot = (day: string, period: number) => {
+  const getTimetableForSlot = (day: number, period: number) => {
     return timetables.find(t => t.dayOfWeek === day && t.period === period);
   };
 
@@ -84,16 +92,16 @@ export default function AcademicPage() {
   // ---- Timetable Dialog Handlers ----
   const resetTtForm = () => {
     setTtCourseId('');
-    setTtDay('');
-    setTtPeriod('');
+    setTtDay(null);
+    setTtPeriod(null);
     setTtRoom('');
     setEditingTtId(null);
   };
 
-  const openTtDialogForSlot = (day: string, period: number) => {
+  const openTtDialogForSlot = (day: number, period: number) => {
     resetTtForm();
     setTtDay(day);
-    setTtPeriod(String(period));
+    setTtPeriod(period);
     setTtDialogOpen(true);
   };
 
@@ -101,7 +109,7 @@ export default function AcademicPage() {
     setEditingTtId(tt.id);
     setTtCourseId(String(tt.course.id));
     setTtDay(tt.dayOfWeek);
-    setTtPeriod(String(tt.period));
+    setTtPeriod(tt.period);
     setTtRoom(tt.room);
     setTtDialogOpen(true);
   };
@@ -111,41 +119,29 @@ export default function AcademicPage() {
     toast.success('Timetable entry deleted!');
   };
 
-  const handleSaveTimetable = () => {
-    if (!ttCourseId || !ttDay || !ttPeriod || !ttRoom) {
+  const handleSaveTimetable = async () => {
+    if (!ttCourseId || ttDay === null || ttPeriod === null || !ttRoom) {
       toast.error('Vui lòng điền đầy đủ thông tin.');
       return;
     }
-    const selectedCourse = courses.find(c => c.id === parseInt(ttCourseId));
-    if (!selectedCourse) {
-      toast.error('Course not found.');
-      return;
-    }
 
-    // Check for conflict (different entry at same slot)
-    const conflict = timetables.find(t => t.dayOfWeek === ttDay && t.period === parseInt(ttPeriod) && t.id !== editingTtId);
-    if (conflict) {
-      toast.error(`Slot ${ttDay} P${ttPeriod} is already taken by "${conflict.course.name}".`);
-      return;
-    }
-
-    const entry: Timetable = {
-      id: editingTtId || Date.now(),
+    const payload = {
+      courseId: parseInt(ttCourseId),
       dayOfWeek: ttDay,
-      period: parseInt(ttPeriod),
+      period: ttPeriod,
       room: ttRoom,
-      course: selectedCourse,
     };
 
-    if (editingTtId) {
-      setTimetables(prev => prev.map(t => t.id === editingTtId ? entry : t));
-      toast.success('Timetable entry updated!');
-    } else {
-      setTimetables(prev => [...prev, entry]);
+    try {
+      await api.post('/timetables', payload);
       toast.success('Timetable entry added!');
+      setTtDialogOpen(false);
+      resetTtForm();
+      fetchAcademicData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save timetable entry.');
     }
-    setTtDialogOpen(false);
-    resetTtForm();
   };
 
   return (
@@ -213,20 +209,20 @@ export default function AcademicPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Day of Week</Label>
-                    <Select value={ttDay} onValueChange={setTtDay}>
+                    <Select value={ttDay !== null ? String(ttDay) : ''} onValueChange={(v) => setTtDay(Number(v))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select day" />
                       </SelectTrigger>
                       <SelectContent>
                         {days.map(d => (
-                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                          <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label>Period</Label>
-                    <Select value={ttPeriod} onValueChange={setTtPeriod}>
+                    <Select value={ttPeriod !== null ? String(ttPeriod) : ''} onValueChange={(v) => setTtPeriod(Number(v))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select period" />
                       </SelectTrigger>
@@ -262,7 +258,7 @@ export default function AcademicPage() {
               <tr className="bg-muted">
                 <th className="border p-3 font-semibold text-muted-foreground w-20">Period</th>
                 {days.map(day => (
-                  <th key={day} className="border p-3 font-semibold text-muted-foreground min-w-[140px]">{day}</th>
+                  <th key={day.value} className="border p-3 font-semibold text-muted-foreground min-w-[140px]">{day.label}</th>
                 ))}
               </tr>
             </thead>
@@ -273,9 +269,9 @@ export default function AcademicPage() {
                     P{period}
                   </td>
                   {days.map(day => {
-                    const slot = getTimetableForSlot(day, period);
+                    const slot = getTimetableForSlot(day.value, period);
                     return (
-                      <td key={`${day}-${period}`} className="border p-2 min-h-[80px]">
+                      <td key={`${day.value}-${period}`} className="border p-2 min-h-[80px]">
                         {slot ? (
                           <div className="group relative flex flex-col h-full w-full justify-center bg-primary/10 rounded-md p-2 border border-primary/20 text-left">
                             <span className="font-semibold text-primary block truncate">{slot.course.name}</span>
@@ -300,7 +296,7 @@ export default function AcademicPage() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => openTtDialogForSlot(day, period)}
+                            onClick={() => openTtDialogForSlot(day.value, period)}
                             className="w-full h-full min-h-[60px] flex items-center justify-center rounded-md border border-dashed border-transparent hover:border-primary/30 hover:bg-primary/5 transition-colors group/empty"
                             title="Add entry here"
                           >
